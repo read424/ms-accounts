@@ -1,0 +1,551 @@
+openapi: 3.0.3
+info:
+  title: Account Service API
+  description: API for managing bank accounts - Specification Driven Development
+  version: 1.0.0
+  contact:
+    name: Account Service Team
+    url: https://example.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: Accounts
+    description: Account management operations
+
+paths:
+  /api/v1/accounts:
+    post:
+      tags:
+        - Accounts
+      summary: Create a new bank account
+      description: |
+        Create a new bank account for a customer.
+        Business Rules Applied:
+        - BR-001: Customer must exist (validated with Customer Service)
+        - BR-002: Personal customer can own one SAVINGS, one CURRENT, multiple FIXED_TERM
+        - BR-003: Business customer can own multiple CURRENT accounts only
+        - BR-005, BR-006, BR-007: Account type-specific rules applied
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Account ownership limit exceeded or business account restriction violated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Accounts
+      summary: Retrieve all accounts
+      description: Get a list of all bank accounts in the system
+      operationId: getAllAccounts
+      parameters:
+        - name: page
+          in: query
+          description: Page number (0-indexed)
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: Page size
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AccountResponse'
+                  totalElements:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  currentPage:
+                    type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/accounts/{accountId}:
+    get:
+      tags:
+        - Accounts
+      summary: Retrieve account by ID
+      description: Get a specific bank account by its account ID
+      operationId: getAccountById
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Unique account identifier
+          schema:
+            type: string
+            example: ACC-001
+      responses:
+        '200':
+          description: Account retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Accounts
+      summary: Update account
+      description: |
+        Update an existing bank account.
+        Note: Only certain fields can be updated (status, account holders, authorized signers)
+      operationId: updateAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Unique account identifier
+          schema:
+            type: string
+            example: ACC-001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+      responses:
+        '200':
+          description: Account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Accounts
+      summary: Delete account
+      description: Close/delete a bank account
+      operationId: deleteAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Unique account identifier
+          schema:
+            type: string
+            example: ACC-001
+      responses:
+        '204':
+          description: Account deleted successfully
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/accounts/customer/{customerId}:
+    get:
+      tags:
+        - Accounts
+      summary: Retrieve accounts by customer
+      description: Get all bank accounts owned by a specific customer
+      operationId: getAccountsByCustomer
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          description: Unique customer identifier
+          schema:
+            type: string
+            example: CUS-001
+      responses:
+        '200':
+          description: List of customer accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResponse'
+        '404':
+          description: Customer not found or has no accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/accounts/{accountId}/balance:
+    get:
+      tags:
+        - Accounts
+      summary: Retrieve account balance
+      description: Get the current balance of a specific account
+      operationId: getAccountBalance
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Unique account identifier
+          schema:
+            type: string
+            example: ACC-001
+      responses:
+        '200':
+          description: Account balance retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountBalanceResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    AccountType:
+      type: string
+      description: Type of bank account
+      enum:
+        - SAVINGS
+        - CURRENT
+        - FIXED_TERM
+      example: SAVINGS
+
+    AccountStatus:
+      type: string
+      description: Account status
+      enum:
+        - ACTIVE
+        - SUSPENDED
+        - CLOSED
+      example: ACTIVE
+
+    CreateAccountRequest:
+      type: object
+      description: Request body for creating a new account
+      required:
+        - customerId
+        - accountType
+        - initialBalance
+      properties:
+        customerId:
+          type: string
+          description: Unique customer identifier
+          example: CUS-001
+        accountType:
+          $ref: '#/components/schemas/AccountType'
+        initialBalance:
+          type: number
+          format: double
+          description: Initial account balance (must be >= 0)
+          minimum: 0
+          example: 1500.00
+        maintenanceFee:
+          type: number
+          format: double
+          description: Monthly maintenance fee (required for CURRENT accounts)
+          minimum: 0
+          example: 5.00
+        monthlyTransactionLimit:
+          type: integer
+          description: Maximum monthly transactions (applicable to SAVINGS accounts)
+          minimum: 1
+          example: 10
+        restrictedOperationDay:
+          type: integer
+          description: Day of month for operations (required for FIXED_TERM accounts, 1-28)
+          minimum: 1
+          maximum: 28
+          example: 15
+        accountHolders:
+          type: array
+          description: List of account holders (required for business accounts)
+          items:
+            $ref: '#/components/schemas/AccountHolder'
+        authorizedSigners:
+          type: array
+          description: List of authorized signers
+          items:
+            $ref: '#/components/schemas/AuthorizedSigner'
+
+    UpdateAccountRequest:
+      type: object
+      description: Request body for updating an account
+      properties:
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+        accountHolders:
+          type: array
+          description: Update account holders
+          items:
+            $ref: '#/components/schemas/AccountHolder'
+        authorizedSigners:
+          type: array
+          description: Update authorized signers
+          items:
+            $ref: '#/components/schemas/AuthorizedSigner'
+
+    AccountResponse:
+      type: object
+      description: Account information response
+      properties:
+        accountId:
+          type: string
+          description: Unique account identifier
+          example: ACC-001
+        customerId:
+          type: string
+          description: Customer identifier
+          example: CUS-001
+        accountType:
+          $ref: '#/components/schemas/AccountType'
+        balance:
+          type: number
+          format: double
+          description: Current account balance
+          example: 1500.00
+        maintenanceFee:
+          type: number
+          format: double
+          description: Monthly maintenance fee
+          example: 0.00
+        monthlyTransactionLimit:
+          type: integer
+          description: Maximum monthly transactions
+          example: 10
+        monthlyTransactionCounter:
+          type: integer
+          description: Current monthly transaction count
+          example: 2
+        restrictedOperationDay:
+          type: integer
+          description: Day of month for fixed-term operations
+          nullable: true
+          example: null
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+        accountHolders:
+          type: array
+          description: Account holders
+          items:
+            $ref: '#/components/schemas/AccountHolder'
+        authorizedSigners:
+          type: array
+          description: Authorized signers
+          items:
+            $ref: '#/components/schemas/AuthorizedSigner'
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: '2024-01-15T10:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: '2024-01-15T10:30:00Z'
+
+    AccountBalanceResponse:
+      type: object
+      description: Account balance information
+      required:
+        - accountId
+        - balance
+        - lastUpdated
+      properties:
+        accountId:
+          type: string
+          description: Account identifier
+          example: ACC-001
+        balance:
+          type: number
+          format: double
+          description: Current balance
+          example: 1500.00
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Last balance update timestamp
+          example: '2024-01-15T10:30:00Z'
+
+    AccountHolder:
+      type: object
+      description: Account holder information
+      required:
+        - customerId
+      properties:
+        customerId:
+          type: string
+          description: Customer identifier
+          example: CUS-001
+
+    AuthorizedSigner:
+      type: object
+      description: Authorized signer information
+      required:
+        - documentType
+        - documentNumber
+        - fullName
+      properties:
+        documentType:
+          type: string
+          description: Type of identification document
+          enum:
+            - DNI
+            - PASSPORT
+            - RUC
+          example: DNI
+        documentNumber:
+          type: string
+          description: Document number
+          example: '12345678'
+        fullName:
+          type: string
+          description: Full name of authorized signer
+          example: John Doe
+
+    ErrorResponse:
+      type: object
+      description: Error response
+      required:
+        - errorCode
+        - message
+        - timestamp
+      properties:
+        errorCode:
+          type: string
+          description: Error code identifier
+          enum:
+            - ACCOUNT_NOT_FOUND
+            - CUSTOMER_NOT_FOUND
+            - INVALID_ACCOUNT_TYPE
+            - ACCOUNT_ALREADY_EXISTS
+            - BUSINESS_ACCOUNT_RESTRICTION
+            - INVALID_FIXED_TERM_OPERATION
+            - INSUFFICIENT_FUNDS
+            - INVALID_REQUEST
+            - INTERNAL_SERVER_ERROR
+          example: ACCOUNT_NOT_FOUND
+        message:
+          type: string
+          description: Error message
+          example: Account with ID ACC-001 not found
+        timestamp:
+          type: string
+          format: date-time
+          description: Error occurrence timestamp
+          example: '2024-01-15T10:30:00Z'
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+          example:
+            accountId: ACC-001
+            path: /api/v1/accounts/ACC-001
