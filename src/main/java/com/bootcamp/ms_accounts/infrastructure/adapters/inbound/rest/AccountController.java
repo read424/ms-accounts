@@ -36,11 +36,10 @@ public class AccountController implements ApiApi {
             Mono<CreateAccountRequest> createAccountRequest,
             ServerWebExchange exchange) {
         return createAccountRequest
-            .flatMap(request -> {
-                var domainModel = requestToModelMapper.toAccountModel(request);
-                return createAccountUseCase.createAccount(domainModel);
-            })
-            .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(accountMapper.toRestDto(response)))
+            .map(requestToModelMapper::toAccountModel)
+            .flatMap(createAccountUseCase::createAccount)
+            .map(accountMapper::toRestDto)
+            .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response))
             .onErrorResume(error -> {
                 log.error("Error creating account: {}", error.getMessage());
                 return Mono.just(ResponseEntity.badRequest().build());
@@ -89,7 +88,8 @@ public class AccountController implements ApiApi {
         return updateAccountRequest
             .map(requestToModelMapper::toUpdateAccountModel)
             .flatMap(updateModel -> updateAccountUseCase.updateAccount(accountId, updateModel))
-            .map(response -> ResponseEntity.ok(accountMapper.toRestDto(response)))
+            .map(accountMapper::toRestDto)
+            .map(ResponseEntity::ok)
             .onErrorResume(error -> {
                 log.error("Error updating account {}: {}", accountId, error.getMessage());
                 return Mono.just(ResponseEntity.badRequest().build());
