@@ -5,6 +5,7 @@ import com.bootcamp.ms_accounts.application.ports.input.*;
 import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.api.ApiApi;
 import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.dto.*;
 import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.mapper.AccountMapper;
+import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.mapper.AccountBalanceMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,9 +14,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 
 @Slf4j
 @Controller
@@ -29,8 +27,8 @@ public class AccountController implements ApiApi {
     private final UpdateAccountUseCase updateAccountUseCase;
     private final DeleteAccountUseCase deleteAccountUseCase;
     private final GetAccountBalanceUseCase getAccountBalanceUseCase;
-    private final ProcessDepositUseCase processDepositUseCase;
     private final AccountMapper accountMapper;
+    private final AccountBalanceMapper accountBalanceMapper;
     private final RequestToModelMapper requestToModelMapper;
 
     @Override
@@ -89,7 +87,8 @@ public class AccountController implements ApiApi {
             Mono<UpdateAccountRequest> updateAccountRequest,
             ServerWebExchange exchange) {
         return updateAccountRequest
-            .flatMap(request -> updateAccountUseCase.updateAccount(accountId, request))
+            .map(requestToModelMapper::toUpdateAccountModel)
+            .flatMap(updateModel -> updateAccountUseCase.updateAccount(accountId, updateModel))
             .map(response -> ResponseEntity.ok(accountMapper.toRestDto(response)))
             .onErrorResume(error -> {
                 log.error("Error updating account {}: {}", accountId, error.getMessage());
@@ -124,15 +123,8 @@ public class AccountController implements ApiApi {
             String accountId,
             ServerWebExchange exchange) {
         return getAccountBalanceUseCase.getAccountBalance(accountId)
-            .map(response -> {
-                var apiResponse = new AccountBalanceResponse();
-                apiResponse.setAccountId(response.getAccountId());
-                apiResponse.setBalance(response.getBalance());
-                if (response.getLastUpdated() != null) {
-                    apiResponse.setLastUpdated(OffsetDateTime.of(response.getLastUpdated(), ZoneOffset.UTC));
-                }
-                return ResponseEntity.ok(apiResponse);
-            })
+            .map(accountBalanceMapper::toRestDto)
+            .map(ResponseEntity::ok)
             .onErrorResume(error -> {
                 log.error("Error retrieving balance for account {}: {}", accountId, error.getMessage());
                 return Mono.just(ResponseEntity.notFound().build());

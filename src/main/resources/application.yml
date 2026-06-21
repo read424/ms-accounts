@@ -1,0 +1,116 @@
+spring:
+  application:
+    name: ms-account
+  cloud:
+    config:
+      enabled: false
+  autoconfigure:
+    exclude:
+      - io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakersHealthIndicatorAutoConfiguration
+  webflux:
+    base-path: /
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/accounts_db
+
+server:
+  port: 8082
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    preferIpAddress: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,circuitbreakers,circuitbreakermetrics,threaddump,heapdump
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms,1000ms,2000ms
+    tags:
+      application: ${spring.application.name}
+      environment: local
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true
+
+services:
+  customer:
+    url: http://ms-customer:8081
+
+resilience4j:
+  circuitbreaker:
+    metrics:
+      enabled: true
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        slowCallRateThreshold: 100
+        slowCallDurationThreshold: 2000
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 5
+        eventConsumerBufferSize: 10
+        ignoreExceptions: []
+        recordExceptions:
+          - java.io.IOException
+          - java.net.ConnectException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.reactive.function.client.WebClientException
+          - java.net.SocketTimeoutException
+    instances:
+      customerService:
+        registerHealthIndicator: true
+        baseConfig: default
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2000
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10000
+        minimumNumberOfCalls: 10
+        eventConsumerBufferSize: 10
+  retry:
+    metrics:
+      enabled: true
+    instances:
+      customerService:
+        maxAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - java.io.IOException
+          - java.net.ConnectException
+          - org.springframework.web.reactive.function.client.WebClientException
+  timelimiter:
+    metrics:
+      enabled: true
+    instances:
+      customerService:
+        timeoutDuration: 3000
+        cancelRunningFuture: true
+
+logging:
+  level:
+    com.bootcamp.ms_accounts: DEBUG
+    org.springframework.web: INFO
+    io.github.resilience4j: INFO
