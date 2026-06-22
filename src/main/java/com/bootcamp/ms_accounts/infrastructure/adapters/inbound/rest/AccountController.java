@@ -40,10 +40,7 @@ public class AccountController implements ApiApi {
             .flatMap(createAccountUseCase::createAccount)
             .map(accountMapper::toRestDto)
             .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response))
-            .onErrorResume(error -> {
-                log.error("Error creating account: {}", error.getMessage());
-                return Mono.just(ResponseEntity.badRequest().build());
-            });
+            .doOnError(error -> log.error("Error creating account: {}", error.getMessage()));
     }
 
     @Override
@@ -74,10 +71,7 @@ public class AccountController implements ApiApi {
             ServerWebExchange exchange) {
         return getAccountByIdUseCase.getAccountById(accountId)
             .map(response -> ResponseEntity.ok(accountMapper.toRestDto(response)))
-            .onErrorResume(error -> {
-                log.error("Error retrieving account {}: {}", accountId, error.getMessage());
-                return Mono.just(ResponseEntity.notFound().build());
-            });
+            .doOnError(error -> log.error("Error retrieving account {}: {}", accountId, error.getMessage()));
     }
 
     @Override
@@ -90,10 +84,7 @@ public class AccountController implements ApiApi {
             .flatMap(updateModel -> updateAccountUseCase.updateAccount(accountId, updateModel))
             .map(accountMapper::toRestDto)
             .map(ResponseEntity::ok)
-            .onErrorResume(error -> {
-                log.error("Error updating account {}: {}", accountId, error.getMessage());
-                return Mono.just(ResponseEntity.badRequest().build());
-            });
+            .doOnError(error -> log.error("Error updating account {}: {}", accountId, error.getMessage()));
     }
 
     @Override
@@ -102,10 +93,7 @@ public class AccountController implements ApiApi {
             ServerWebExchange exchange) {
         return deleteAccountUseCase.deleteAccount(accountId)
             .then(Mono.just(ResponseEntity.noContent().<Void>build()))
-            .onErrorResume(error -> {
-                log.error("Error deleting account {}: {}", accountId, error.getMessage());
-                return Mono.just(ResponseEntity.notFound().build());
-            });
+            .doOnError(error -> log.error("Error deleting account {}: {}", accountId, error.getMessage()));
     }
 
     @Override
@@ -125,9 +113,6 @@ public class AccountController implements ApiApi {
         return getAccountBalanceUseCase.getAccountBalance(accountId)
             .map(accountBalanceMapper::toRestDto)
             .map(ResponseEntity::ok)
-            .onErrorResume(error -> {
-                log.error("Error retrieving balance for account {}: {}", accountId, error.getMessage());
-                return Mono.just(ResponseEntity.notFound().build());
-            });
+            .doOnError(error -> log.error("Error retrieving balance for account {}: {}", accountId, error.getMessage()));
     }
 }

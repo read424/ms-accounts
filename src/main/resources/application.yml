@@ -3,7 +3,7 @@ spring:
     name: ms-account
   cloud:
     config:
-      enabled: false
+      enabled: true
   autoconfigure:
     exclude:
       - io.github.resilience4j.springboot3.circuitbreaker.autoconfigure.CircuitBreakersHealthIndicatorAutoConfiguration
@@ -52,7 +52,7 @@ management:
 
 services:
   customer:
-    url: http://ms-customer:8081
+    url: http://localhost:8081
 
 resilience4j:
   circuitbreaker:

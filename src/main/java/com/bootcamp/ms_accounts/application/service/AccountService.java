@@ -101,7 +101,8 @@ public class AccountService implements
             .flatMap(customerType ->
                 accountRepositoryPort.countByCustomerIdAndAccountType(
                         request.getCustomerId(),
-                        request.getAccountType().name())
+                        request.getAccountType().name()
+                    )
                     .flatMap(count ->
                         validationService.validateAccountOwnership(request, count, customerType)
                     )

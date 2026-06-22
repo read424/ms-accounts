@@ -3,6 +3,7 @@ package com.bootcamp.ms_accounts.infrastructure.adapters.outbound.http;
 import com.bootcamp.ms_accounts.application.ports.output.CustomerClientPort;
 import com.bootcamp.ms_accounts.domain.model.enums.CustomerType;
 import com.bootcamp.ms_accounts.domain.model.exception.ExternalServiceUnavailableException;
+import com.bootcamp.ms_accounts.infrastructure.adapters.outbound.http.dto.CustomerResponse;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.core.registry.EntryAddedEvent;
 import io.github.resilience4j.core.registry.EntryRemovedEvent;
@@ -41,9 +42,10 @@ public class CustomerServiceClient implements CustomerClientPort {
     @TimeLimiter(name = "customerService")
     public Mono<CustomerType> getCustomerType(String customerId) {
         return webClient.get()
-            .uri("/api/v1/customers/{customerId}/type", customerId)
+            .uri("/api/v1/customers/{customerId}", customerId)
             .retrieve()
-            .bodyToMono(CustomerType.class);
+            .bodyToMono(CustomerResponse.class)
+            .map(CustomerResponse::getCustomerType);
     }
 
     public Mono<Boolean> fallbackValidateCustomer(String customerId, Exception ex) {

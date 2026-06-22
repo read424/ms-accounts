@@ -12,7 +12,7 @@ public class PersonalCustomerValidationStrategy implements AccountOwnershipValid
         AccountTypeModel accountType = accountModel.getAccountType();
 
         if (existingAccountCount > 0 && (accountType == AccountTypeModel.SAVINGS ||
-                accountType == AccountTypeModel.CURRENT)) {
+                accountType == AccountTypeModel.CURRENT || accountType == AccountTypeModel.FIXED_TERM)) {
             return Mono.error(new BusinessAccountRestrictionException(
                 "Personal customer can only own one " + accountType + " account"));
         }
