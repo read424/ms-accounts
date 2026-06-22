@@ -2,11 +2,8 @@ package com.bootcamp.ms_accounts.application.service;
 
 import com.bootcamp.ms_accounts.application.ports.input.*;
 import com.bootcamp.ms_accounts.domain.model.dto.*;
-import com.bootcamp.ms_accounts.domain.model.enums.AccountTypeModel;
-import com.bootcamp.ms_accounts.domain.model.exception.BusinessAccountRestrictionException;
 import com.bootcamp.ms_accounts.domain.model.exception.CustomerNotFoundException;
 import com.bootcamp.ms_accounts.domain.model.exception.AccountNotFoundException;
-import com.bootcamp.ms_accounts.domain.model.mapper.RequestToModelMapper;
 import com.bootcamp.ms_accounts.domain.model.dto.UpdateAccountModel;
 import com.bootcamp.ms_accounts.domain.model.validation.AccountOwnershipValidationService;
 import com.bootcamp.ms_accounts.application.ports.output.AccountRepositoryPort;
@@ -41,9 +38,11 @@ public class AccountService implements
     public Mono<AccountModel> createAccount(AccountModel request) {
         return customerClientPort.validateCustomerExists(request.getCustomerId())
             .switchIfEmpty(Mono.error(new CustomerNotFoundException(
-                "Customer with ID " + request.getCustomerId() + " not found")))
+                "Customer with ID " + request.getCustomerId() + " not found"))
+            )
             .flatMap(valid -> validateAccountOwnershipRules(request)
-                .thenReturn(request))
+                .thenReturn(request)
+            )
             .flatMap(this::buildAndSaveAccount);
     }
 

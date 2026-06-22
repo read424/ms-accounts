@@ -5,10 +5,12 @@ import com.bootcamp.ms_accounts.application.ports.output.CustomerClientPort;
 import com.bootcamp.ms_accounts.domain.model.dto.*;
 import com.bootcamp.ms_accounts.domain.model.enums.AccountStatusModel;
 import com.bootcamp.ms_accounts.domain.model.enums.AccountTypeModel;
+import com.bootcamp.ms_accounts.domain.model.enums.CustomerType;
 import com.bootcamp.ms_accounts.domain.model.exception.AccountNotFoundException;
 import com.bootcamp.ms_accounts.domain.model.exception.BusinessAccountRestrictionException;
 import com.bootcamp.ms_accounts.domain.model.exception.CustomerNotFoundException;
 import com.bootcamp.ms_accounts.domain.model.mapper.RequestToModelMapper;
+import com.bootcamp.ms_accounts.domain.model.validation.AccountOwnershipValidationService;
 import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.dto.CreateAccountRequest;
 import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.dto.UpdateAccountRequest;
 import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.dto.AccountType;
@@ -46,6 +48,9 @@ class AccountServiceTest {
     @Mock
     private KafkaProducer kafkaProducer;
 
+    @Mock
+    private AccountOwnershipValidationService validationService;
+
     private AccountService accountService;
 
     @BeforeEach
@@ -53,8 +58,8 @@ class AccountServiceTest {
         accountService = new AccountService(
             accountRepositoryPort,
             customerClientPort,
-            requestToModelMapper,
-            kafkaProducer
+            kafkaProducer,
+            validationService
         );
     }
 
@@ -86,8 +91,12 @@ class AccountServiceTest {
 
             when(customerClientPort.validateCustomerExists(customerId))
                 .thenReturn(Mono.just(true));
+            when(customerClientPort.getCustomerType(customerId))
+                .thenReturn(Mono.just(CustomerType.PERSONAL));
             when(accountRepositoryPort.countByCustomerIdAndAccountType(customerId, "SAVINGS"))
                 .thenReturn(Mono.just(0L));
+            when(validationService.validateAccountOwnership(any(AccountModel.class), any(Long.class), any(CustomerType.class)))
+                .thenReturn(Mono.empty());
             when(accountRepositoryPort.save(any(AccountModel.class)))
                 .thenReturn(Mono.just(savedAccount));
 
@@ -134,8 +143,13 @@ class AccountServiceTest {
 
             when(customerClientPort.validateCustomerExists(customerId))
                 .thenReturn(Mono.just(true));
+            when(customerClientPort.getCustomerType(customerId))
+                .thenReturn(Mono.just(CustomerType.PERSONAL));
             when(accountRepositoryPort.countByCustomerIdAndAccountType(customerId, "SAVINGS"))
                 .thenReturn(Mono.just(1L)); // Already has one
+            when(validationService.validateAccountOwnership(any(AccountModel.class), any(Long.class), any(CustomerType.class)))
+                .thenReturn(Mono.error(new BusinessAccountRestrictionException(
+                    "Personal customer can only own one SAVINGS account")));
 
             // When & Then
             StepVerifier.create(accountService.createAccount(accountModel))
@@ -158,6 +172,13 @@ class AccountServiceTest {
 
             when(customerClientPort.validateCustomerExists(customerId))
                 .thenReturn(Mono.just(true));
+            when(customerClientPort.getCustomerType(customerId))
+                .thenReturn(Mono.just(CustomerType.BUSINESS));
+            when(accountRepositoryPort.countByCustomerIdAndAccountType(customerId, "SAVINGS"))
+                .thenReturn(Mono.just(0L));
+            when(validationService.validateAccountOwnership(any(AccountModel.class), any(Long.class), any(CustomerType.class)))
+                .thenReturn(Mono.error(new BusinessAccountRestrictionException(
+                    "Business customers cannot have SAVINGS accounts")));
 
             // When & Then
             StepVerifier.create(accountService.createAccount(accountModel))
@@ -180,6 +201,13 @@ class AccountServiceTest {
 
             when(customerClientPort.validateCustomerExists(customerId))
                 .thenReturn(Mono.just(true));
+            when(customerClientPort.getCustomerType(customerId))
+                .thenReturn(Mono.just(CustomerType.BUSINESS));
+            when(accountRepositoryPort.countByCustomerIdAndAccountType(customerId, "FIXED_TERM"))
+                .thenReturn(Mono.just(0L));
+            when(validationService.validateAccountOwnership(any(AccountModel.class), any(Long.class), any(CustomerType.class)))
+                .thenReturn(Mono.error(new BusinessAccountRestrictionException(
+                    "Business customers cannot have FIXED_TERM accounts")));
 
             // When & Then
             StepVerifier.create(accountService.createAccount(accountModel))
