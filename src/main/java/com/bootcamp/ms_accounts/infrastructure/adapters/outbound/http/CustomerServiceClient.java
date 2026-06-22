@@ -1,6 +1,7 @@
 package com.bootcamp.ms_accounts.infrastructure.adapters.outbound.http;
 
 import com.bootcamp.ms_accounts.application.ports.output.CustomerClientPort;
+import com.bootcamp.ms_accounts.domain.model.enums.CustomerType;
 import com.bootcamp.ms_accounts.domain.model.exception.ExternalServiceUnavailableException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.core.registry.EntryAddedEvent;
@@ -34,8 +35,30 @@ public class CustomerServiceClient implements CustomerClientPort {
             .onErrorReturn(false);
     }
 
+    @Override
+    @CircuitBreaker(name = "customerService", fallbackMethod = "fallbackGetCustomerType")
+    @Retry(name = "customerService")
+    @TimeLimiter(name = "customerService")
+    public Mono<CustomerType> getCustomerType(String customerId) {
+        return webClient.get()
+            .uri("/api/v1/customers/{customerId}/type", customerId)
+            .retrieve()
+            .bodyToMono(CustomerType.class);
+    }
+
     public Mono<Boolean> fallbackValidateCustomer(String customerId, Exception ex) {
         log.warn("Fallback activado para customer {}: {}", customerId, ex.getMessage());
+        return Mono.error(
+            new ExternalServiceUnavailableException(
+                "customer-service",
+                "El servicio de clientes no está disponible. Reintente más tarde.",
+                ex
+            )
+        );
+    }
+
+    public Mono<CustomerType> fallbackGetCustomerType(String customerId, Exception ex) {
+        log.warn("Fallback activado para obtener tipo de customer {}: {}", customerId, ex.getMessage());
         return Mono.error(
             new ExternalServiceUnavailableException(
                 "customer-service",

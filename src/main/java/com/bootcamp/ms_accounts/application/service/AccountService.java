@@ -8,6 +8,7 @@ import com.bootcamp.ms_accounts.domain.model.exception.CustomerNotFoundException
 import com.bootcamp.ms_accounts.domain.model.exception.AccountNotFoundException;
 import com.bootcamp.ms_accounts.domain.model.mapper.RequestToModelMapper;
 import com.bootcamp.ms_accounts.domain.model.dto.UpdateAccountModel;
+import com.bootcamp.ms_accounts.domain.model.validation.AccountOwnershipValidationService;
 import com.bootcamp.ms_accounts.application.ports.output.AccountRepositoryPort;
 import com.bootcamp.ms_accounts.application.ports.output.CustomerClientPort;
 import com.bootcamp.ms_accounts.infrastructure.adapters.outbound.messaging.KafkaProducer;
@@ -33,8 +34,8 @@ public class AccountService implements
 
     private final AccountRepositoryPort accountRepositoryPort;
     private final CustomerClientPort customerClientPort;
-    private final RequestToModelMapper requestToModelMapper;
     private final KafkaProducer kafkaProducer;
+    private final AccountOwnershipValidationService validationService;
 
     @Override
     public Mono<AccountModel> createAccount(AccountModel request) {
@@ -97,25 +98,15 @@ public class AccountService implements
     }
 
     private Mono<Void> validateAccountOwnershipRules(AccountModel request) {
-        boolean isBusinessCustomer = request.getCustomerId().startsWith("BUSINESS_");
-
-        if (isBusinessCustomer && (request.getAccountType() == AccountTypeModel.SAVINGS ||
-                request.getAccountType() == AccountTypeModel.FIXED_TERM)) {
-            return Mono.error(new BusinessAccountRestrictionException(
-                "Business customers cannot have " + request.getAccountType() + " accounts"));
-        }
-
-        return accountRepositoryPort.countByCustomerIdAndAccountType(
-                request.getCustomerId(),
-                request.getAccountType().name())
-            .flatMap(count -> {
-                if (count > 0 && (request.getAccountType() == AccountTypeModel.SAVINGS ||
-                        request.getAccountType() == AccountTypeModel.CURRENT)) {
-                    return Mono.error(new BusinessAccountRestrictionException(
-                        "Customer can only own one " + request.getAccountType() + " account"));
-                }
-                return Mono.empty();
-            });
+        return customerClientPort.getCustomerType(request.getCustomerId())
+            .flatMap(customerType ->
+                accountRepositoryPort.countByCustomerIdAndAccountType(
+                        request.getCustomerId(),
+                        request.getAccountType().name())
+                    .flatMap(count ->
+                        validationService.validateAccountOwnership(request, count, customerType)
+                    )
+            );
     }
 
     private Mono<AccountModel> buildAndSaveAccount(AccountModel request) {
