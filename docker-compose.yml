@@ -57,12 +57,6 @@ services:
       - "8082:8082"
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATA_MONGODB_HOST: mongodb-accounts
-      SPRING_DATA_MONGODB_PORT: 27017
-      SPRING_DATA_MONGODB_DATABASE: ms_accounts_prod
-      SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE: admin
-      SPRING_DATA_MONGODB_USERNAME: admin
-      SPRING_DATA_MONGODB_PASSWORD: bootcamp_accounts_prod_2024
       EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://service-eureka:8761/eureka/
       SPRING_REDIS_HOST: redis-accounts
       SPRING_REDIS_PORT: 6379
