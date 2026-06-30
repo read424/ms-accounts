@@ -11,7 +11,11 @@ spring:
     base-path: /
   data:
     mongodb:
-      uri: mongodb://localhost:27017/accounts_db
+      auto-index-creation: true
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
   port: 8082
@@ -19,7 +23,7 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://localhost:8761/eureka/}
   instance:
     preferIpAddress: true
     lease-renewal-interval-in-seconds: 10
@@ -108,6 +112,12 @@ resilience4j:
       customerService:
         timeoutDuration: 3000
         cancelRunningFuture: true
+
+kafka:
+  topics:
+    account-created: account.created
+    account-deposit-completed: account.deposit.completed
+    account-withdrawal-completed: account.withdrawal.completed
 
 logging:
   level:
