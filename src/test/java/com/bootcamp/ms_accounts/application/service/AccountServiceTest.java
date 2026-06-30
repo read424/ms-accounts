@@ -2,6 +2,7 @@ package com.bootcamp.ms_accounts.application.service;
 
 import com.bootcamp.ms_accounts.application.ports.output.AccountRepositoryPort;
 import com.bootcamp.ms_accounts.application.ports.output.CustomerClientPort;
+import com.bootcamp.ms_accounts.application.ports.output.AccountEventPublisherPort;
 import com.bootcamp.ms_accounts.domain.model.dto.*;
 import com.bootcamp.ms_accounts.domain.model.enums.AccountStatusModel;
 import com.bootcamp.ms_accounts.domain.model.enums.AccountTypeModel;
@@ -15,7 +16,6 @@ import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.dto.CreateA
 import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.dto.UpdateAccountRequest;
 import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.dto.AccountType;
 import com.bootcamp.ms_accounts.infrastructure.adapters.inbound.rest.dto.AccountStatus;
-import com.bootcamp.ms_accounts.infrastructure.adapters.outbound.messaging.KafkaProducer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,10 +43,7 @@ class AccountServiceTest {
     private CustomerClientPort customerClientPort;
 
     @Mock
-    private RequestToModelMapper requestToModelMapper;
-
-    @Mock
-    private KafkaProducer kafkaProducer;
+    private AccountEventPublisherPort eventPublisher;
 
     @Mock
     private AccountOwnershipValidationService validationService;
@@ -58,7 +55,7 @@ class AccountServiceTest {
         accountService = new AccountService(
             accountRepositoryPort,
             customerClientPort,
-            kafkaProducer,
+            eventPublisher,
             validationService
         );
     }
