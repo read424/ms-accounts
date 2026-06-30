@@ -1,0 +1,116 @@
+spring:
+  application:
+    name: ms-account
+  data:
+    mongodb:
+      host: ${SPRING_DATA_MONGODB_HOST:mongodb-accounts}
+      port: ${SPRING_DATA_MONGODB_PORT:27017}
+      database: ${SPRING_DATA_MONGODB_DATABASE:ms_accounts_prod}
+      authentication-database: ${SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE:admin}
+      username: ${SPRING_DATA_MONGODB_USERNAME:admin}
+      password: ${SPRING_DATA_MONGODB_PASSWORD:bootcamp_accounts_prod_2024}
+      auto-index-creation: true
+    redis:
+      host: ${SPRING_REDIS_HOST:redis-accounts}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+      timeout: 60s
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+server:
+  port: 8082
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://service-eureka:8761/eureka/}
+  instance:
+    preferIpAddress: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+
+services:
+  customer:
+    url: ${CUSTOMER_SERVICE_URL:http://ms-customer:8081}
+
+resilience4j:
+  circuitbreaker:
+    metrics:
+      enabled: true
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        slowCallRateThreshold: 100
+        slowCallDurationThreshold: 2000
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 5
+        eventConsumerBufferSize: 10
+        ignoreExceptions: []
+        recordExceptions:
+          - java.io.IOException
+          - java.net.ConnectException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.reactive.function.client.WebClientException
+          - java.net.SocketTimeoutException
+    instances:
+      customerService:
+        registerHealthIndicator: true
+        baseConfig: default
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2000
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10000
+        minimumNumberOfCalls: 10
+        eventConsumerBufferSize: 10
+  retry:
+    metrics:
+      enabled: true
+    instances:
+      customerService:
+        maxAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - java.io.IOException
+          - java.net.ConnectException
+          - org.springframework.web.reactive.function.client.WebClientException
+  timelimiter:
+    metrics:
+      enabled: true
+    instances:
+      customerService:
+        timeoutDuration: 3000
+        cancelRunningFuture: true
+
+kafka:
+  topics:
+    account-created: account.created
+    account-deposit-completed: account.deposit.completed
+    account-withdrawal-completed: account.withdrawal.completed
+
+logging:
+  level:
+    com.bootcamp.ms_accounts: INFO
+    org.springframework.web: INFO
+    io.github.resilience4j: INFO
