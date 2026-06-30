@@ -1,728 +1,257 @@
 {
   "info": {
-    "_postman_id": "ms-accounts-part1",
-    "name": "MS Accounts - Parte I Test Suite",
-    "description": "Colección de pruebas para validar la lógica de negocio de creación de cuentas bancarias - Parte I",
+    "_postman_id": "banking-platform-part2",
+    "name": "Banking Platform - Parte II (VIP/PYME + Balance)",
+    "description": "Colección de pruebas para validar microservicios ms-accounts (con perfiles VIP/PYME), ms-balance y reportes",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "1. Personal Customer - Crear Cuenta SAVINGS",
-      "event": [
+      "name": "MS-Accounts Estándar",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 201 Created', function() {",
-              "  pm.response.to.have.status(201);",
-              "});",
-              "",
-              "pm.test('Response has accountId', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData).to.have.property('accountId');",
-              "  pm.globals.set('personalAccountSavingsId', jsonData.accountId);",
-              "});",
-              "",
-              "pm.test('Account type is SAVINGS', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.accountType).to.equal('SAVINGS');",
-              "});",
-              "",
-              "pm.test('Initial balance is correct', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.balance).to.equal(2000);",
-              "});",
-              "",
-              "pm.test('Status is ACTIVE', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.status).to.equal('ACTIVE');",
-              "});"
-            ]
+          "name": "1. Personal - SAVINGS Estándar",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"customerId\": \"PERSONAL_001\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 2000.00,\n  \"profileType\": \"STANDARD\"\n}"},
+            "url": {"raw": "{{ms-accounts-url}}/api/v1/accounts", "host": ["{{ms-accounts-url}}"], "path": ["api", "v1", "accounts"]}
           }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"PERSONAL_001\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 2000.00,\n  \"monthlyTransactionLimit\": 5\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      }
-    },
-    {
-      "name": "2. Personal Customer - Crear Cuenta CURRENT",
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 201 Created', function() {",
-              "  pm.response.to.have.status(201);",
-              "});",
-              "",
-              "pm.test('Response has accountId', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData).to.have.property('accountId');",
-              "  pm.globals.set('personalAccountCurrentId', jsonData.accountId);",
-              "});",
-              "",
-              "pm.test('Account type is CURRENT', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.accountType).to.equal('CURRENT');",
-              "});",
-              "",
-              "pm.test('Maintenance fee is applied', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.maintenanceFee).to.equal(10);",
-              "});"
-            ]
+          "name": "2. Personal - CURRENT Estándar",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"customerId\": \"PERSONAL_002\",\n  \"accountType\": \"CURRENT\",\n  \"initialBalance\": 5000.00,\n  \"profileType\": \"STANDARD\"\n}"},
+            "url": {"raw": "{{ms-accounts-url}}/api/v1/accounts", "host": ["{{ms-accounts-url}}"], "path": ["api", "v1", "accounts"]}
           }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"PERSONAL_001\",\n  \"accountType\": \"CURRENT\",\n  \"initialBalance\": 5000.00,\n  \"maintenanceFee\": 10.00\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
+        {
+          "name": "3. Business - CURRENT Estándar",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"customerId\": \"BUSINESS_001\",\n  \"accountType\": \"CURRENT\",\n  \"initialBalance\": 50000.00,\n  \"profileType\": \"STANDARD\",\n  \"accountHolders\": [{\"customerId\": \"BUSINESS_001\"}]\n}"},
+            "url": {"raw": "{{ms-accounts-url}}/api/v1/accounts", "host": ["{{ms-accounts-url}}"], "path": ["api", "v1", "accounts"]}
+          }
         }
-      }
+      ]
     },
     {
-      "name": "3. Personal Customer - Crear Cuenta FIXED_TERM",
-      "event": [
+      "name": "MS-Accounts PARTE II - Nuevos Perfiles",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 201 Created', function() {",
-              "  pm.response.to.have.status(201);",
-              "});",
-              "",
-              "pm.test('Response has accountId', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData).to.have.property('accountId');",
-              "  pm.globals.set('personalAccountFixedTerm1Id', jsonData.accountId);",
-              "});",
-              "",
-              "pm.test('Account type is FIXED_TERM', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.accountType).to.equal('FIXED_TERM');",
-              "});",
-              "",
-              "pm.test('Restricted operation day is set', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.restrictedOperationDay).to.equal(15);",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"PERSONAL_001\",\n  \"accountType\": \"FIXED_TERM\",\n  \"initialBalance\": 10000.00,\n  \"restrictedOperationDay\": 15\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      }
-    },
-    {
-      "name": "4. Personal Customer - Crear Segunda Cuenta FIXED_TERM (Permitido)",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 201 Created', function() {",
-              "  pm.response.to.have.status(201);",
-              "});",
-              "",
-              "pm.test('Personal customer puede tener múltiples FIXED_TERM', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.accountType).to.equal('FIXED_TERM');",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"PERSONAL_001\",\n  \"accountType\": \"FIXED_TERM\",\n  \"initialBalance\": 5000.00,\n  \"restrictedOperationDay\": 20\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      }
-    },
-    {
-      "name": "5. Personal Customer - VALIDACION: No puede crear segunda SAVINGS",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code es 409 Conflict', function() {",
-              "  pm.response.to.have.status(409);",
-              "});",
-              "",
-              "pm.test('Error es BusinessAccountRestrictionException', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.errorCode).to.equal('BUSINESS_ACCOUNT_RESTRICTION');",
-              "});",
-              "",
-              "pm.test('Mensaje contiene restriccion de SAVINGS', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.message).to.include('SAVINGS');",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"PERSONAL_001\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 3000.00,\n  \"monthlyTransactionLimit\": 5\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      }
-    },
-    {
-      "name": "6. Personal Customer - VALIDACION: No puede crear segunda CURRENT",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code es 409 Conflict', function() {",
-              "  pm.response.to.have.status(409);",
-              "});",
-              "",
-              "pm.test('Error es BusinessAccountRestrictionException', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.errorCode).to.equal('BUSINESS_ACCOUNT_RESTRICTION');",
-              "});",
-              "",
-              "pm.test('Mensaje contiene restriccion de CURRENT', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.message).to.include('CURRENT');",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"PERSONAL_001\",\n  \"accountType\": \"CURRENT\",\n  \"initialBalance\": 3000.00,\n  \"maintenanceFee\": 10.00\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      }
-    },
-    {
-      "name": "7. Business Customer - Crear Cuenta CURRENT",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 201 Created', function() {",
-              "  pm.response.to.have.status(201);",
-              "});",
-              "",
-              "pm.test('Response has accountId', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData).to.have.property('accountId');",
-              "  pm.globals.set('businessAccountCurrent1Id', jsonData.accountId);",
-              "});",
-              "",
-              "pm.test('Account type is CURRENT', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.accountType).to.equal('CURRENT');",
-              "});",
-              "",
-              "pm.test('Has account holders (business requirement)', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.accountHolders).to.be.an('array');",
-              "  pm.expect(jsonData.accountHolders.length).to.be.greaterThan(0);",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"BUSINESS_001\",\n  \"accountType\": \"CURRENT\",\n  \"initialBalance\": 50000.00,\n  \"maintenanceFee\": 25.00,\n  \"accountHolders\": [\n    {\n      \"customerId\": \"BUSINESS_001\"\n    }\n  ],\n  \"authorizedSigners\": [\n    {\n      \"documentType\": \"DNI\",\n      \"documentNumber\": \"12345678\",\n      \"fullName\": \"Juan Perez\"\n    }\n  ]\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      }
-    },
-    {
-      "name": "8. Business Customer - Crear Segunda Cuenta CURRENT (Permitido)",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 201 Created', function() {",
-              "  pm.response.to.have.status(201);",
-              "});",
-              "",
-              "pm.test('Business customer puede tener múltiples CURRENT', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.accountType).to.equal('CURRENT');",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"BUSINESS_001\",\n  \"accountType\": \"CURRENT\",\n  \"initialBalance\": 30000.00,\n  \"maintenanceFee\": 25.00,\n  \"accountHolders\": [\n    {\n      \"customerId\": \"BUSINESS_001\"\n    },\n    {\n      \"customerId\": \"BUSINESS_PARTNER_001\"\n    }\n  ]\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      }
-    },
-    {
-      "name": "9. Business Customer - VALIDACION: No puede crear SAVINGS",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code es 409 Conflict', function() {",
-              "  pm.response.to.have.status(409);",
-              "});",
-              "",
-              "pm.test('Error es BusinessAccountRestrictionException', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.errorCode).to.equal('BUSINESS_ACCOUNT_RESTRICTION');",
-              "});",
-              "",
-              "pm.test('Mensaje contiene restriccion SAVINGS', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.message).to.include('SAVINGS');",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"BUSINESS_001\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 20000.00,\n  \"monthlyTransactionLimit\": 5,\n  \"accountHolders\": [\n    {\n      \"customerId\": \"BUSINESS_001\"\n    }\n  ]\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      }
-    },
-    {
-      "name": "10. Business Customer - VALIDACION: No puede crear FIXED_TERM",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code es 409 Conflict', function() {",
-              "  pm.response.to.have.status(409);",
-              "});",
-              "",
-              "pm.test('Error es BusinessAccountRestrictionException', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.errorCode).to.equal('BUSINESS_ACCOUNT_RESTRICTION');",
-              "});",
-              "",
-              "pm.test('Mensaje contiene restriccion FIXED_TERM', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.message).to.include('FIXED_TERM');",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"customerId\": \"BUSINESS_001\",\n  \"accountType\": \"FIXED_TERM\",\n  \"initialBalance\": 20000.00,\n  \"restrictedOperationDay\": 15,\n  \"accountHolders\": [\n    {\n      \"customerId\": \"BUSINESS_001\"\n    }\n  ]\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ]
-        }
-      }
-    },
-    {
-      "name": "11. Get Account Balance - Personal SAVINGS",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 200 OK', function() {",
-              "  pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test('Response has balance and accountId', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData).to.have.property('balance');",
-              "  pm.expect(jsonData).to.have.property('accountId');",
-              "});",
-              "",
-              "pm.test('Balance es igual a initialBalance', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.balance).to.equal(2000);",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts/{{personalAccountSavingsId}}/balance",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts",
-            "{{personalAccountSavingsId}}",
-            "balance"
-          ]
-        }
-      }
-    },
-    {
-      "name": "12. Get All Accounts",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 200 OK', function() {",
-              "  pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test('Response has content array', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData).to.have.property('content');",
-              "  pm.expect(jsonData.content).to.be.an('array');",
-              "});",
-              "",
-              "pm.test('Response has pagination info', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData).to.have.property('totalElements');",
-              "  pm.expect(jsonData).to.have.property('totalPages');",
-              "  pm.expect(jsonData).to.have.property('currentPage');",
-              "});"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts?page=0&size=20",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts"
-          ],
-          "query": [
+          "name": "4. Personal VIP - SAVINGS (Mín $10,000)",
+          "event": [
             {
-              "key": "page",
-              "value": "0"
-            },
-            {
-              "key": "size",
-              "value": "20"
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function() {pm.response.to.have.status(201);});",
+                  "pm.test('Profile es VIP', function() {var jsonData = pm.response.json(); pm.expect(jsonData.profileType).to.equal('VIP');});",
+                  "pm.test('Max monthly transactions es 50', function() {var jsonData = pm.response.json(); pm.expect(jsonData.maxMonthlyTransactionsNoFee).to.equal(50);});",
+                  "pm.test('Minimum daily balance es $10,000', function() {var jsonData = pm.response.json(); pm.expect(jsonData.minimumDailyBalance).to.equal(10000);});"
+                ]
+              }
             }
-          ]
-        }
-      }
-    },
-    {
-      "name": "13. Get Accounts by Customer - Personal",
-      "event": [
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"customerId\": \"PERSONAL_VIP_001\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 15000.00,\n  \"profileType\": \"VIP\"\n}"},
+            "url": {"raw": "{{ms-accounts-url}}/api/v1/accounts", "host": ["{{ms-accounts-url}}"], "path": ["api", "v1", "accounts"]}
+          }
+        },
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 200 OK', function() {",
-              "  pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test('Response es array de cuentas', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData).to.be.an('array');",
-              "});",
-              "",
-              "pm.test('Contiene al menos 3 cuentas personales', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.length).to.be.greaterThanOrEqual(3);",
-              "});"
-            ]
+          "name": "5. Personal VIP - VALIDACIÓN: Balance insuficiente (<$10,000)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function() {pm.response.to.have.status(400);});",
+                  "pm.test('Error message menciona mínimo requerido', function() {var jsonData = pm.response.json(); pm.expect(jsonData.message).to.include('minimum');});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"customerId\": \"PERSONAL_VIP_INVALID\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 5000.00,\n  \"profileType\": \"VIP\"\n}"},
+            "url": {"raw": "{{ms-accounts-url}}/api/v1/accounts", "host": ["{{ms-accounts-url}}"], "path": ["api", "v1", "accounts"]}
+          }
+        },
+        {
+          "name": "6. Business PYME - CURRENT sin comisión",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function() {pm.response.to.have.status(201);});",
+                  "pm.test('Profile es PYME', function() {var jsonData = pm.response.json(); pm.expect(jsonData.profileType).to.equal('PYME');});",
+                  "pm.test('Maintenance fee es $0', function() {var jsonData = pm.response.json(); pm.expect(jsonData.maintenanceFee).to.equal(0);});",
+                  "pm.test('Max monthly transactions es 300', function() {var jsonData = pm.response.json(); pm.expect(jsonData.maxMonthlyTransactionsNoFee).to.equal(300);});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"customerId\": \"BUSINESS_PYME_001\",\n  \"accountType\": \"CURRENT\",\n  \"initialBalance\": 25000.00,\n  \"profileType\": \"PYME\",\n  \"accountHolders\": [{\"customerId\": \"BUSINESS_PYME_001\"}]\n}"},
+            "url": {"raw": "{{ms-accounts-url}}/api/v1/accounts", "host": ["{{ms-accounts-url}}"], "path": ["api", "v1", "accounts"]}
+          }
+        },
+        {
+          "name": "7. Business PYME - VALIDACIÓN: No SAVINGS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function() {pm.response.to.have.status(400);});",
+                  "pm.test('Error menciona CHECKING requirement', function() {var jsonData = pm.response.json(); pm.expect(jsonData.message).to.include('CHECKING');});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"customerId\": \"BUSINESS_PYME_INVALID\",\n  \"accountType\": \"SAVINGS\",\n  \"initialBalance\": 20000.00,\n  \"profileType\": \"PYME\",\n  \"accountHolders\": [{\"customerId\": \"BUSINESS_PYME_INVALID\"}]\n}"},
+            "url": {"raw": "{{ms-accounts-url}}/api/v1/accounts", "host": ["{{ms-accounts-url}}"], "path": ["api", "v1", "accounts"]}
           }
         }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts/customer/PERSONAL_001",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts",
-            "customer",
-            "PERSONAL_001"
-          ]
-        }
-      }
+      ]
     },
     {
-      "name": "14. Get Accounts by Customer - Business",
-      "event": [
+      "name": "MS-Balance - Reportes",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test('Status code is 200 OK', function() {",
-              "  pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test('Response es array de cuentas', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData).to.be.an('array');",
-              "});",
-              "",
-              "pm.test('Contiene al menos 2 cuentas de empresa', function() {",
-              "  var jsonData = pm.response.json();",
-              "  pm.expect(jsonData.length).to.be.greaterThanOrEqual(2);",
-              "});",
-              "",
-              "pm.test('Todas son cuentas CURRENT', function() {",
-              "  var jsonData = pm.response.json();",
-              "  jsonData.forEach(function(account) {",
-              "    pm.expect(account.accountType).to.equal('CURRENT');",
-              "  });",
-              "});"
-            ]
+          "name": "8. Get Balance - Por Product ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {pm.response.to.have.status(200);});",
+                  "pm.test('Response tiene productId, currentBalance', function() {var jsonData = pm.response.json(); pm.expect(jsonData).to.have.property('productId'); pm.expect(jsonData).to.have.property('currentBalance');});",
+                  "pm.test('Response tiene productType', function() {var jsonData = pm.response.json(); pm.expect(['ACCOUNT','CREDIT']).to.include(jsonData.productType);});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{ms-balance-url}}/balances/ACC-0001001", "host": ["{{ms-balance-url}}"], "path": ["balances", "ACC-0001001"]}
+          }
+        },
+        {
+          "name": "9. Get All Balances - Por Customer ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {pm.response.to.have.status(200);});",
+                  "pm.test('Response es Flux de BalanceResponse', function() {var jsonData = pm.response.json(); pm.expect(jsonData).to.be.an('array');});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{ms-balance-url}}/balances/customer/CUST-123", "host": ["{{ms-balance-url}}"], "path": ["balances", "customer", "CUST-123"]}
+          }
+        },
+        {
+          "name": "10. Últimos 10 Movimientos - Tarjeta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {pm.response.to.have.status(200);});",
+                  "pm.test('Response es array de transacciones', function() {var jsonData = pm.response.json(); pm.expect(jsonData).to.be.an('array');});",
+                  "pm.test('Máximo 10 movimientos', function() {var jsonData = pm.response.json(); pm.expect(jsonData.length).to.be.lessThanOrEqual(10);});",
+                  "pm.test('Cada transacción tiene type, amount, timestamp', function() {var jsonData = pm.response.json(); jsonData.forEach(function(t) {pm.expect(t).to.have.property('type'); pm.expect(t).to.have.property('amount'); pm.expect(t).to.have.property('timestamp');});});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ms-balance-url}}/reports/transactions/latest?productId=ACC-0001001&limit=10",
+              "host": ["{{ms-balance-url}}"],
+              "path": ["reports", "transactions", "latest"],
+              "query": [{"key": "productId", "value": "ACC-0001001"}, {"key": "limit", "value": "10"}]
+            }
+          }
+        },
+        {
+          "name": "11. Reporte General - Intervalo de Tiempo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {pm.response.to.have.status(200);});",
+                  "pm.test('Response tiene startDate, endDate, totalTransactions', function() {var jsonData = pm.response.json(); pm.expect(jsonData).to.have.property('startDate'); pm.expect(jsonData).to.have.property('endDate'); pm.expect(jsonData).to.have.property('totalTransactions');});",
+                  "pm.test('Response tiene statistics (deposits, withdrawals, etc)', function() {var jsonData = pm.response.json(); pm.expect(jsonData).to.have.property('totalDeposits'); pm.expect(jsonData).to.have.property('totalAmount');});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ms-balance-url}}/reports/general?startDate=2024-01-01&endDate=2024-12-31&productId=ACC-0001001",
+              "host": ["{{ms-balance-url}}"],
+              "path": ["reports", "general"],
+              "query": [{"key": "startDate", "value": "2024-01-01"}, {"key": "endDate", "value": "2024-12-31"}, {"key": "productId", "value": "ACC-0001001"}]
+            }
+          }
+        },
+        {
+          "name": "12. Reporte General - Todos los Productos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {pm.response.to.have.status(200);});",
+                  "pm.test('Sin productId incluye todos', function() {var jsonData = pm.response.json(); pm.expect(jsonData.productId).to.be.null;});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{ms-balance-url}}/reports/general?startDate=2024-01-01&endDate=2024-12-31",
+              "host": ["{{ms-balance-url}}"],
+              "path": ["reports", "general"],
+              "query": [{"key": "startDate", "value": "2024-01-01"}, {"key": "endDate", "value": "2024-12-31"}]
+            }
           }
         }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts/customer/BUSINESS_001",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "v1",
-            "accounts",
-            "customer",
-            "BUSINESS_001"
-          ]
-        }
-      }
+      ]
     }
   ],
   "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8080",
-      "type": "string"
-    }
+    {"key": "ms-accounts-url", "value": "http://localhost:8082", "type": "string"},
+    {"key": "ms-credits-url", "value": "http://localhost:8083", "type": "string"},
+    {"key": "ms-transaction-url", "value": "http://localhost:8084", "type": "string"},
+    {"key": "ms-balance-url", "value": "http://localhost:8085", "type": "string"},
+    {"key": "customer-id", "value": "CUST-123", "type": "string"}
   ]
 }
