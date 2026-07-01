@@ -101,8 +101,7 @@ services:
       KAFKA_CLUSTERS_0_NAME: bootcamp-cluster
       KAFKA_CLUSTERS_0_METRICS_PORT: 9092
     depends_on:
-      kafka:
-        condition: service_healthy
+      - kafka
     deploy:
       resources:
         limits:
@@ -145,7 +144,6 @@ services:
         max-file: "3"
     networks:
       - bootcamp-network
-      - net-web-nginx
 
 volumes:
   mongodb_accounts_data:
