@@ -131,11 +131,6 @@ services:
       SPRING_REDIS_PASSWORD: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka_broker:9092
       JAVA_OPTS: -Xmx512m -Xms256m
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     restart: unless-stopped
     logging:
       driver: "json-file"
