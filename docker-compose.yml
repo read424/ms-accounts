@@ -125,6 +125,7 @@ services:
       - "8082:8082"
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_CONFIG_IMPORT: configserver:http://service-config-server:8888
       EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://service-eureka:8761/eureka/
       SPRING_REDIS_HOST: redis-accounts
       SPRING_REDIS_PORT: 6379
